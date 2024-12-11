@@ -1,0 +1,24 @@
+# Node.js
+node_modules/
+npm-debug.log
+yarn.lock
+
+# Environment Files
+.env
+.env.local
+
+# Build Artifacts
+dist/
+build/
+.next/
+
+# OS-specific Files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# IDE Configurations
+.vscode/
+.idea/
