@@ -60,8 +60,6 @@ export const acceptFriendRequest = async (requestId) => {
     if (!requestId) {
       throw new Error("Invalid requestId");
     }
-
-
     console.log('Friend request accepted:', response.data);
     return response.data;
   } catch (error) {

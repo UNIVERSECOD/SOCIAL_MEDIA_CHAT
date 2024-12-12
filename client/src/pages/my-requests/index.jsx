@@ -1,6 +1,15 @@
 import React, { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getFriendRequests, acceptFriendRequest, rejectFriendRequest } from "@/services/friendship"; 
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
+import {
+  getFriendRequests,
+  acceptFriendRequest,
+  rejectFriendRequest,
+} from "@/services/friendship";
+import RequestCard from "./components/RequestCard";
+import { INVITE_QUERY_KEY } from "@/constants/query-keys";
+import RequestsWrapper from "./components/RequestsWrapper";
+import InfiniteScroll from "react-infinite-scroll-component";
+import Spinner from "@/components/shared/spinner";
 
 const ErrorMessage = ({ message }) => (
   <div className="text-red-600 font-medium py-4 text-center">
@@ -9,104 +18,56 @@ const ErrorMessage = ({ message }) => (
 );
 
 const GettingFriendRequestPage = () => {
-  const queryClient = useQueryClient();
-  const [loadingRequestId, setLoadingRequestId] = useState(null);
 
-  const userToken = localStorage.getItem("userToken");  // Get the token from localStorage
-
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["friendRequests"],
-    queryFn: () => getFriendRequests(userToken),
+  const { data, isError, error, fetchNextPage, hasNextPage } =
+  useInfiniteQuery({
+    queryKey: [INVITE_QUERY_KEY],
+    queryFn: ({ pageParam }) => getFriendRequests({ pageParam }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const { count, page, limit } = lastPage;
+      const hasMore = count > page * limit;
+      return hasMore ? page + 1 : undefined;
+    },
+    refetchOnWindowFocus: false,
   });
 
-  const acceptMutation = useMutation({
-    mutationFn: acceptFriendRequest,
-    onMutate: (variables) => {
-      setLoadingRequestId(variables.requestId);
-    },
-    onSettled: () => {
-      setLoadingRequestId(null);
-      queryClient.invalidateQueries({ queryKey: ["friendRequests"] });
-    },
-    onError: (error) => {
-      console.error("Error accepting friend request:", error);
-    },
-  });
+const { pages } = data ?? {};
 
-  const rejectMutation = useMutation({
-    mutationFn: rejectFriendRequest,
-    onMutate: (variables) => {
-      setLoadingRequestId(variables.requestId);
-    },
-    onSettled: () => {
-      setLoadingRequestId(null);
-      queryClient.invalidateQueries({ queryKey: ["friendRequests"] });
-    },
-    onError: (error) => {
-      console.error("Error rejecting friend request:", error);
-    },
-  });
+if (isError) {
+  return <div>Error: {error.message}</div>;
+}
 
-  if (isLoading) return <div>Loading...</div>;
-  if (isError) return <ErrorMessage message={error.message} />;
+console.log(pages);
 
-  const handleRequestAction = (requestId, action) => {
-    if (action === "accept") {
-      acceptMutation.mutate({ requestId });
-    } else if (action === "reject") {
-      rejectMutation.mutate({ requestId });
-    }
-  };
 
   return (
     <div className="relative overflow-x-auto px-10 py-10">
-      {data && data.requests && data.requests.length > 0 ? (
-        <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-          <tbody>
-            {data.requests.map((request) => (
-              <tr key={request._id} className="bg-white dark:bg-gray-800">
-                <th
-                  scope="row"
-                  className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-                >
-                  {request.sender.username} {/* Display sender's username */}
-                </th>
-                <td className="px-2 py-4 text-right">
-                  <button
-                    type="button"
-                    className="focus:outline-none text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 transition dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
-                    onClick={() => handleRequestAction(request._id, "accept")}
-                    disabled={acceptMutation.isLoading && loadingRequestId === request._id}
-                  >
-                    {acceptMutation.isLoading && loadingRequestId === request._id
-                      ? "Sending..."
-                      : "Add as Friend"}
-                  </button>
-  
-                  <button
-                    type="button"
-                    className="ml-4 focus:outline-none text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 transition dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
-                    onClick={() => handleRequestAction(request._id, "reject")}
-                    disabled={rejectMutation.isLoading && loadingRequestId === request._id}
-                  >
-                    {rejectMutation.isLoading && loadingRequestId === request._id
-                      ? "Sending..."
-                      : "Ignore"}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        <div className="text-center py-10">
-          <p className="text-lg font-medium text-gray-600">No friend requests</p>
-        </div>
-      )}
+      <RequestsWrapper>
+      <InfiniteScroll
+          dataLength={pages?.length ?? 0}
+          next={fetchNextPage}
+          hasMore={hasNextPage}
+          loader={<Spinner size={24} />}
+          endMessage={
+            <p className="text-muted-foreground font-semibold text-sm text-center mt-5">
+              Yay! You have seen it all
+            </p>
+          }
+        >
+          {({ isLoading, data, error }) => {
+            if (isLoading) return <div className="text-center py-10">Loading...</div>;
+            if (error) return <ErrorMessage message={error.message} />;
+            return (
+              data?.requests?.map((request) => (
+                <RequestCard key={request._id} request={request} />
+              ))
+            );
+          }}
+        </InfiniteScroll>
+      </RequestsWrapper>
     </div>
   );
 };
 
-
 export default GettingFriendRequestPage;
-

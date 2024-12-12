@@ -1,6 +1,6 @@
 import React from 'react';
 
-const UpdatingRequestBar = () => {
+const FriendCard = () => {
   return (
     <div className="relative overflow-x-auto px-10 py-10">
       <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
@@ -27,4 +27,4 @@ const UpdatingRequestBar = () => {
   );
 };
 
-export default UpdatingRequestBar;
+export default FriendCard;

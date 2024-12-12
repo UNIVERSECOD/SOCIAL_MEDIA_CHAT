@@ -1,10 +1,10 @@
 import React from 'react'
-import UpdatingRequestBar from './componenets/UpdatingRequestBar'
+import FriendCard from './componenets/FriendCard'
 
 const MyFriendsPage = () => {
     return (
     <>
-    <UpdatingRequestBar/>
+    <FriendCard/>
     </>
         
           )
