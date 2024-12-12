@@ -5,9 +5,6 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true,
-        minlength: 3,
-        maxlength: 20,
-        match: /^[A-Za-z0-9._]+$/,
       },
     name: {
         type: String,

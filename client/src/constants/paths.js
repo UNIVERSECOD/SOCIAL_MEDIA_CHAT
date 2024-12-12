@@ -8,5 +8,7 @@ export const PATHS = {
   FRIENDSHIP: "/friend",
   FRIEND_REQUEST: "/friend/requests",
   FIND_FRIEND: "/users",
-  CHAT: "/chat"
+  CHAT: "/chat",
+  CONVERSATION: "/chat/:id",
+
 };

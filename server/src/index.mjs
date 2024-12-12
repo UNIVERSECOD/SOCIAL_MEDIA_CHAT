@@ -1,5 +1,5 @@
 import express from "express"
-const app = express();
+import { createServer } from "node:http";
 import "./config/db.mjs"
 import "./config/auth-local-startegy.mjs"
 import authRoutes from "./routes/auth.mjs"
@@ -11,7 +11,13 @@ import postsRouter from "./routes/post.mjs"
 import commentRoutes from "./routes/comment.mjs"
 import friendRoutes from "./routes/friendship.mjs"
 import cors from "cors";
+import { initalizeSocket } from "./socket/index.mjs";
+import conversationRoutes from "./routes/conversation.mjs";
 
+
+const app = express();
+const server = createServer(app);
+initalizeSocket(server);
 
 app.use(cors({
   origin: process.env.FE_BASE_URL,
@@ -56,6 +62,8 @@ app.use("/users", usersRoutes)
 app.use ("/comment", commentRoutes)
 
 app.use ("/friendship", friendRoutes)
+
+app.use("/conversation", conversationRoutes);
 
 
 app.use('/images', express.static('public/images'));

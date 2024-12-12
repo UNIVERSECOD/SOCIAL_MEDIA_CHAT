@@ -32,14 +32,11 @@ export const sendFriendRequest = async (friendId) => {
   }
 };
 
-export async function getFriendRequests(userToken) {
+export async function getFriendRequests(pageParam) {
   try {
     const response = await axios.get(
-      `${BASE_URL}/friendship/requests`,  
+      `${BASE_URL}/friendship/requests?page=${pageParam}`,  
       {
-        headers: {
-          Authorization: `Bearer ${userToken}`,
-        },
         withCredentials: true,
       }
     );
@@ -55,15 +52,15 @@ export async function getFriendRequests(userToken) {
 
 export const acceptFriendRequest = async (requestId) => {
   try {
-    if (!requestId) {
-      throw new Error("Invalid requestId");
-    }
-
     const response = await axios.patch(
       `${BASE_URL}/friendship/${requestId}/accept`, 
       {},
       { withCredentials: true }
     );
+    if (!requestId) {
+      throw new Error("Invalid requestId");
+    }
+
 
     console.log('Friend request accepted:', response.data);
     return response.data;
@@ -91,7 +88,7 @@ export const rejectFriendRequest = async (requestId) => {
 
 export const removeFromFriends = async (userId) => {
   try {
-    const response = await axios.patch(
+    const response = await axios.delete(
       `${BASE_URL}/friendship/remove/${userId}`, 
       {},
       { withCredentials: true }
