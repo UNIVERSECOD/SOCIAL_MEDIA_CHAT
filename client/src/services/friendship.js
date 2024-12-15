@@ -3,20 +3,23 @@ import axios from "axios";
 
 export async function getAllFriends({ pageParam, search = "", sort = "" }) {
   try {
-    const response = await axios.get(`${BASE_URL}/friendship`, {
+    const response = await axios.get(`${BASE_URL}/friendship/test`, {
       params: {
         page: pageParam,
         search,
         sort,
         limit: 3,
       },
+      withCredentials: true,  
     });
+    console.log("API Response:", response.data);
     return response.data;
   } catch (error) {
     console.error(error);
     return { error: error.message }; 
   }
 }
+
 
 export const sendFriendRequest = async (friendId) => {
   try {

@@ -3,7 +3,7 @@ import { authorize } from '../middlewares/auth.mjs';
 const router = Router();
 import controller from '../controllers/friendship.mjs';
 
-router.get('/', authorize(), controller.getAllFriends);
+router.get('/test', authorize(), controller.getAllFriends);
 
 router.patch('/add/:receiverId', authorize(), controller.sendFriendRequest);
 

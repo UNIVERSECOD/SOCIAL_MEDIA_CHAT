@@ -22,10 +22,16 @@ export const Conversations = () => {
       {
         queryKey: [CHAT_FRIENDS_KEY],
         queryFn: getFriends,
+        onError: (error) => {
+          console.error("Failed to fetch friends:", error);
+        },
       },
       {
         queryKey: [CHAT_CONVERSATIONS_KEY],
         queryFn: getConversations,
+        onError: (error) => {
+          console.error("Failed to fetch conversations:", error);
+        },
       },
     ],
   });
@@ -47,13 +53,17 @@ export const Conversations = () => {
       <div className="flex flex-row items-center justify-between text-xs">
         <span className="font-bold">Friends</span>
         <span className="flex items-center justify-center bg-gray-300 h-4 w-4 rounded-full">
-          {friendsData.items.length}
+          {friendsData?.items?.length || 0}
         </span>
       </div>
       <div className="flex flex-col space-y-1 mt-4 -mx-2 h-48 overflow-y-auto">
-        {friendsData.items.map((user) => (
-          <UserItem user={user} key={user._id} />
-        ))}
+        {friendsData?.items?.length ? (
+          friendsData.items.map((user) => (
+            <UserItem user={user} key={user._id} />
+          ))
+        ) : (
+          <p className="text-gray-500">No friends available.</p>
+        )}
       </div>
       <div className="flex flex-row items-center justify-between text-xs">
         <span className="font-bold">Conversation</span>
@@ -62,12 +72,16 @@ export const Conversations = () => {
         </span>
       </div>
       <div className="flex flex-col space-y-1 mt-4 -mx-2 h-48 overflow-y-auto">
-        {conversationData.items.map((conversation) => (
-          <ConversationItem
-            conversation={conversation}
-            key={conversation._id}
-          />
-        ))}
+        {conversationData?.items ? (
+          conversationData.items.map((conversation) => (
+            <ConversationItem
+              conversation={conversation}
+              key={conversation._id}
+            />
+          ))
+        ) : (
+          <p className="text-gray-500">No conversations available.</p>
+        )}
       </div>
     </div>
   );

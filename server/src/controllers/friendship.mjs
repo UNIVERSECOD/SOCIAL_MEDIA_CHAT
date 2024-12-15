@@ -3,7 +3,12 @@ import User from "../mongoose/schemas/user.mjs";
 import Friendship from "../mongoose/schemas/friend.mjs";
 
 const getAllFriends = async (req, res) => {
+  console.log(req.query);
   try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: "Unauthorized access. Please log in." });
+    }
+
     const { sort, search, page = 1, limit = 10 } = req.query;
     const sortObj = {};
     const filter = {
@@ -19,12 +24,10 @@ const getAllFriends = async (req, res) => {
     }
 
     if (search) {
-      filter.$or.push({
-        'user.username': { $regex: search, $options: 'i' },
-      });
-      filter.$or.push({
-        'friend.username': { $regex: search, $options: 'i' },
-      });
+      filter.$or.push(
+        { 'user.username': { $regex: search, $options: 'i' } },
+        { 'friend.username': { $regex: search, $options: 'i' } }
+      );
     }
 
     const data = await Friendship.find(filter)
@@ -34,10 +37,13 @@ const getAllFriends = async (req, res) => {
       .limit(parseInt(limit))
       .skip((parseInt(page) - 1) * parseInt(limit));
 
+    if (!data || data.length === 0) {
+      return res.status(404).json({ message: "No friendships found." });
+    }
+
     const totalCount = await Friendship.countDocuments(filter);
 
     const items = data.map((item) => ({
-      ...item.toObject(),
       user: {
         _id: item.user._id,
         name: item.user.username,
@@ -60,6 +66,7 @@ const getAllFriends = async (req, res) => {
     res.status(500).json({ message: "Server error getting friendships." });
   }
 };
+
 
 const sendFriendRequest = async (req, res) => {
   try {
@@ -102,40 +109,28 @@ const sendFriendRequest = async (req, res) => {
 const acceptFriendRequest = async (req, res) => {
   try {
     const { requestId } = req.params;
+    const userId = req.user._id;
 
-    if (!mongoose.Types.ObjectId.isValid(requestId)) {
-      return res.status(400).json({ message: "Invalid request ID." });
-    }
-
-    const request = await Friendship.findById(requestId)
-      .populate("sender", "username")
-      .populate("receiver", "username");
+    const request = await Friendship.findById(requestId);
 
     if (!request) {
-      return res.status(404).json({ message: "Friend request not found." });
+      return res.status(404).json({ message: "Request not found" });
     }
 
-    if (request.receiver._id.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Unauthorized." });
+    if (request.sender._id.toString() === userId.toString()) {
+      return res.status(400).json({ message: "You can't accept your own request" });
     }
-
     request.status = 'accepted';
     await request.save();
 
-    await User.findByIdAndUpdate(request.sender._id, {
-      $addToSet: { friends: request.receiver._id },
-    });
-
-    await User.findByIdAndUpdate(request.receiver._id, {
-      $addToSet: { friends: request.sender._id },
-    });
-
-    res.json({ message: "Friend request accepted successfully", friend: request.sender });
+    res.status(200).json({ message: "Friend request accepted", request });
   } catch (error) {
-    console.error("Error in acceptFriendRequest:", error);
-    res.status(500).json({ message: "Server error accepting friend request." });
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
   }
 };
+
+
 
 const rejectFriendRequest = async (req, res) => {
   try {
@@ -145,11 +140,14 @@ const rejectFriendRequest = async (req, res) => {
       return res.status(400).json({ message: "Invalid request ID." });
     }
 
-    const request = await Friendship.findByIdAndDelete(requestId);
+    const request = await Friendship.findById(requestId);
 
     if (!request) {
       return res.status(404).json({ message: "Friend request not found." });
     }
+
+    request.status = 'rejected';
+    await request.save();
 
     res.status(200).json({ message: "Friend request rejected successfully." });
   } catch (error) {
@@ -158,16 +156,14 @@ const rejectFriendRequest = async (req, res) => {
   }
 };
 
+
 const getFriendRequests = async (req, res) => {
   try {
     const userId = req.user.id;
     const { page = 1, limit = 10 } = req.query;
 
     const filter = {
-      $or: [
-        { sender: userId },
-        { receiver: userId },
-      ],
+      $or: [{ sender: userId }, { receiver: userId }],
     };
 
     const requests = await Friendship.find(filter)
@@ -176,7 +172,18 @@ const getFriendRequests = async (req, res) => {
       .limit(parseInt(limit))
       .skip((parseInt(page) - 1) * parseInt(limit));
 
-    res.json({ message: "Friend requests retrieved successfully", requests });
+    console.log("Raw requests:", requests); 
+    if (!requests || requests.length === 0) {
+      return res.status(404).json({ message: "No friend requests found." });
+    }
+
+    const sanitizedRequests = requests.map((req) => ({
+      sender: req.sender?.username || "Unknown Sender",
+      receiver: req.receiver?.username || "Unknown Receiver",
+      ...req._doc,
+    }));
+
+    res.json({ message: "Friend requests retrieved successfully", requests: sanitizedRequests });
   } catch (error) {
     console.error("Error in getFriendRequests:", error);
     res.status(500).json({ message: "Server error retrieving friend requests." });
