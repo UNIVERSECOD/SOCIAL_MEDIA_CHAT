@@ -1,21 +1,14 @@
 import { Router } from "express";
-const router = Router();
-import auth from "../controllers/auth.mjs";
+import authController from "../controllers/auth.mjs";
 import { authenticate, authorize } from "../middlewares/auth.mjs";
 
+const router = Router();
 
-
-
-router.post("/login", authenticate, auth.authController.login);
-
-router.post("/register", auth.authController.register)
-
-router.get("/current-user", authorize(), auth.authController.currentUser);
-
-router.post("/logout", auth.authController.logout);
-
-router.post("/forgot-password", auth.authController.forgotPassword);
-
-router.post("/reset-password", auth.authController.resetPassword);
+router.post("/login", authenticate, authController.login);
+router.post("/register", authController.register);
+router.get("/current-user", authorize(), authController.currentUser);
+router.post("/logout", authController.logout);
+router.post("/forgot-password", authController.forgotPassword);
+router.post("/reset-password", authController.resetPassword);
 
 export default router;

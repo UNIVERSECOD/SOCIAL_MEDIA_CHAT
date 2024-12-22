@@ -1,10 +1,10 @@
 export const commentSchema = {
-    content: {
-        in: ["body"],
-        isString: true,
-        isLength: {
-            min: 5,
-            errorMessage: "Comment length must be greater than 5"
-        }
-    }
-}
+  content: {
+    in: ["body"],
+    isString: true,
+    isLength: {
+      errorMessage: "Comment should be at least 5 chars long",
+      options: { min: 5 },
+    },
+  },
+};

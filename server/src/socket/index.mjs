@@ -15,5 +15,4 @@ export function initalizeSocket(server) {
     console.log("user connected", socket.id);
     socketHandlers(socket, socketUsers);
   });
-
 }

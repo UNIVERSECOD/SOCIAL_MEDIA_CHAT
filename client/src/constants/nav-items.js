@@ -1,13 +1,19 @@
-import { BookmarkIcon, SearchIcon, UserPlus2, UsersIcon } from "lucide-react";
-import { HomeIcon } from "lucide-react";
+import { BookmarkIcon, PlusIcon, SearchIcon } from "lucide-react";
 import { PATHS } from "./paths";
+import { Binoculars } from "lucide-react";
 import { ChatBubbleIcon, PersonIcon } from "@radix-ui/react-icons";
+import { HomeIcon } from "lucide-react";
 
 export const NAV_ITEMS = [
   {
-    title: "Home",
-    icon: HomeIcon,
-    to: PATHS.HOME,
+    title: "Discover",
+    icon: Binoculars,
+    to: PATHS.DISCOVER,
+  },
+  {
+    title: "Saved",
+    icon: BookmarkIcon,
+    to: PATHS.SAVED,
   },
   {
     title: "Profile",
@@ -15,27 +21,17 @@ export const NAV_ITEMS = [
     to: PATHS.PROFILE,
   },
   {
-    title: "Saved Posts",
-    icon: BookmarkIcon,
-    to: PATHS.SAVED,
+    title: "Invites",
+    icon: PlusIcon,
+    to: PATHS.INVITES,
   },
   {
-    title: "My Friends",
-    icon: UsersIcon ,
-    to: PATHS.FRIENDSHIP,
-  },
-  {
-    title: "Requests",
-    icon: UserPlus2,
-    to: PATHS.FRIEND_REQUEST,
-  },
-  {
-    title: "Find Friend",
+    title: "Search",
     icon: SearchIcon,
-    to: PATHS.FIND_FRIEND,
+    to: PATHS.SEARCH,
   },
   {
-    title: "Messages",
+    title: "Chat",
     icon: ChatBubbleIcon,
     to: PATHS.CHAT,
   },

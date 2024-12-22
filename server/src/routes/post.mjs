@@ -1,28 +1,28 @@
-import { Router } from'express'
-import controller from "../controllers/post.mjs"
-import validate from '../middlewares/validate.mjs';
-import upload from '../middlewares/multer.mjs';
+import { Router } from "express";
+import postController from "../controllers/post.mjs";
 import { authorize } from "../middlewares/auth.mjs";
-import createPostValidationSchema from '../validation/post.mjs';
-import editPostValidationSchema from '../validation/post.mjs';
-const router = Router()
+import validateSchema from "../middlewares/validate.mjs";
+import { postCreateSchema, postEditSchema } from "../validation/post.mjs";
+import { upload } from "../middlewares/upload.mjs";
 
+const router = Router();
 
-
-router.get('/', authorize(),  controller.getAll);
-
-
-router.post('/',authorize(), upload.single("img"), validate(createPostValidationSchema), controller.create)
-
-
-
-router.delete('/:id', authorize(),  controller.remove) 
-
-
-router.put('/:id',authorize(), upload.single("img"), validate(editPostValidationSchema), controller.update) 
-
-
-router.put('/:id/like',authorize(), controller.like) 
-
+router.get("/", authorize(), postController.getAll);
+router.post(
+  "/",
+  authorize(),
+  upload.single("image"),
+  validateSchema(postCreateSchema),
+  postController.create
+);
+router.put(
+  "/:id",
+  authorize(),
+  upload.single("image"),
+  validateSchema(postEditSchema),
+  postController.update
+);
+router.delete("/:id", authorize(), postController.remove);
+router.put("/:id/like", authorize(), postController.like);
 
 export default router;

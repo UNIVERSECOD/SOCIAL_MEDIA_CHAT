@@ -5,15 +5,18 @@ import {
   CHAT_FRIENDS_KEY,
 } from "@/constants/query-keys";
 import { cn } from "@/lib/utils";
-import { getConversations, getFriends } from "@/services/user";
+import { getConversations, getFriends } from "@/services/users";
 import { selectUser } from "@/store/auth/authSlice";
 import { useQueries } from "@tanstack/react-query";
 import React from "react";
+import { useState } from "react";
+import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 
-export const Conversations = () => {
+export const Conversations = ({ socket }) => {
+  const [conversationUnreadCount, setConversationUnreadCount] = useState({});
   const [
     { data: friendsData, isLoading: isFriendsLoading },
     { data: conversationData, isLoading: conversationsLoading },
@@ -22,19 +25,26 @@ export const Conversations = () => {
       {
         queryKey: [CHAT_FRIENDS_KEY],
         queryFn: getFriends,
-        onError: (error) => {
-          console.error("Failed to fetch friends:", error);
-        },
       },
       {
         queryKey: [CHAT_CONVERSATIONS_KEY],
         queryFn: getConversations,
-        onError: (error) => {
-          console.error("Failed to fetch conversations:", error);
-        },
       },
     ],
   });
+
+  useEffect(() => {
+    if (!socket) return;
+    socket.on("message", (data) => {
+      conversationUnreadCount[data.conversationId] = data.unreadCount;
+      setConversationUnreadCount({ ...conversationUnreadCount });
+    });
+  }, [socket]);
+
+  function deleteFromSocketCount(conversationId) {
+    delete conversationUnreadCount[conversationId];
+    setConversationUnreadCount({ ...conversationUnreadCount });
+  }
 
   if (isFriendsLoading || conversationsLoading) {
     return (
@@ -53,17 +63,13 @@ export const Conversations = () => {
       <div className="flex flex-row items-center justify-between text-xs">
         <span className="font-bold">Friends</span>
         <span className="flex items-center justify-center bg-gray-300 h-4 w-4 rounded-full">
-          {friendsData?.items?.length || 0}
+          {friendsData.items.length}
         </span>
       </div>
       <div className="flex flex-col space-y-1 mt-4 -mx-2 h-48 overflow-y-auto">
-        {friendsData?.items?.length ? (
-          friendsData.items.map((user) => (
-            <UserItem user={user} key={user._id} />
-          ))
-        ) : (
-          <p className="text-gray-500">No friends available.</p>
-        )}
+        {friendsData.items.map((user) => (
+          <UserItem user={user} key={user._id} />
+        ))}
       </div>
       <div className="flex flex-row items-center justify-between text-xs">
         <span className="font-bold">Conversation</span>
@@ -72,22 +78,26 @@ export const Conversations = () => {
         </span>
       </div>
       <div className="flex flex-col space-y-1 mt-4 -mx-2 h-48 overflow-y-auto">
-        {conversationData?.items ? (
-          conversationData.items.map((conversation) => (
-            <ConversationItem
-              conversation={conversation}
-              key={conversation._id}
-            />
-          ))
-        ) : (
-          <p className="text-gray-500">No conversations available.</p>
-        )}
+        {conversationData.items.map((conversation) => (
+          <ConversationItem
+            socket={socket}
+            onSocketCountReset={deleteFromSocketCount}
+            unreadSocketCount={conversationUnreadCount[conversation._id]}
+            conversation={conversation}
+            key={conversation._id}
+          />
+        ))}
       </div>
     </div>
   );
 };
 
-function ConversationItem({ conversation }) {
+function ConversationItem({
+  onSocketCountReset,
+  unreadSocketCount,
+  conversation,
+  socket,
+}) {
   const { id } = useParams();
   const { user } = useSelector(selectUser);
   const receiver =
@@ -97,6 +107,20 @@ function ConversationItem({ conversation }) {
   if (conversation.messages.length === 0) return null;
   const lastMessage = conversation.messages[conversation.messages.length - 1];
   const isActive = id === receiver._id;
+  const unreadCount =
+    unreadSocketCount ??
+    (user._id === conversation.user1._id
+      ? conversation.user1UnreadMessageCount
+      : conversation.user2UnreadMessageCount);
+
+  const showUnreadCount = unreadCount > 0 && !isActive;
+
+  useEffect(() => {
+    if (isActive && unreadSocketCount > 0) {
+      socket.emit("mark-as-read", { conversationId: conversation._id });
+      onSocketCountReset(conversation._id);
+    }
+  }, [unreadSocketCount, isActive]);
 
   return (
     <Link
@@ -119,9 +143,11 @@ function ConversationItem({ conversation }) {
           {lastMessage.content}
         </span>
       </div>
-      {/* <div className="flex items-center justify-center ml-auto text-xs text-white bg-red-500 h-4 w-4 rounded leading-none">
-        2
-      </div> */}
+      {showUnreadCount && (
+        <div className="flex items-center justify-center ml-auto text-xs text-white bg-red-500 h-4 w-4 rounded leading-none">
+          {unreadCount}
+        </div>
+      )}
     </Link>
   );
 }

@@ -1,185 +1,203 @@
-import generatePasswordResetEmail from "../constants/email.mjs";
 import User from "../mongoose/schemas/user.mjs";
-import { comparePasswords, hashPassword } from "../utils/bcrypt.mjs";
-import transporter from "../utils/mail.mjs";
-import crypto from 'crypto';
-
-
-
-
-const login = async (req, res) => {
-    const user = req.user.toObject();
-    delete user.password;
-    delete user.resetPasswordToken;
-    delete user.resetPasswordTokenExpires;
-    res.send({ message: "Login successful", user })
-    
-}
-
+import { hashPassword } from "../utils/bcrypt.mjs";
+import crypto from "crypto";
+import { transporter } from "../utils/mail.mjs";
 
 const register = async (req, res) => {
-    try {
+  try {
+    const { email, password, name, username } = req.body;
 
-        const { username, email, password, name } = req.body
-
-        if ( !username || !email || !password || !name) {
-            return res.status(400).json({ message: "All fields are required" });
-        }
-
-        const alreadyExistsUser = await User.findOne({ email })
-        if (alreadyExistsUser) {
-            return res.status(400).json({ message: "Email already exists" });
-        }
-
-        const alreadyExistsUserName = await User.findOne({ username })
-        if (alreadyExistsUserName) {
-            return res.status(400).json({ message: "Username already exists" });
-        }
-
-        const user = new User({
-            username,
-            email,
-            password: hashPassword(password), //bcryps gorunmemesi uchun
-            name
-        })
-
-        await user.save()
-        res.send({ message: "User registered successfully" })
-
-
-    } catch (err) {
-        console.error(err);
-        return res.status(500).json({ message: "Server error" });
+    if (!email || !password || !name) {
+      return res.status(400).json({ message: "Please fill in all fields" });
     }
 
-}
+    const alreadyExists = await User.findOne({
+      $or: [{ email }, { username }],
+    });
+
+    if (alreadyExists) {
+      return res
+        .status(400)
+        .json({ message: "User with this email&username already exists" });
+    }
+
+    const user = new User({
+      email,
+      username,
+      password: hashPassword(password),
+      name,
+    });
+
+    await user.save();
+
+    res.send({ message: "User registered successfully" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal server error!" });
+  }
+};
+
+const login = async (req, res) => {
+  const user = req.user.toObject();
+  delete user.password;
+  delete user.resetPasswordToken;
+  delete user.resetPasswordTokenExpires;
+  res.send({ message: "User logged in successfully", user });
+};
 
 const currentUser = async (req, res) => {
-    try {
-        const user = req.user.toObject();
-        user.avatar = `${process.env.BASE_URL}${user.avatar}`;
-        res.json({ user })
-    } catch (err) {
-        console.error(err);
-        return res.status(500).json({ message: "Server error" });
+  const user = req.user.toObject();
+  user.avatar = `${process.env.BASE_URL}${user.avatar}`;
+
+  res.json({ user });
+};
+
+const logout = (req, res) => {
+  req.logout(function (err) {
+    if (err) {
+      res.status(500).json({ message: "Internal server error!" });
     }
-}
-
-
-const logout = async (req, res) => {
-
-    req.logout(function (err) {
-        if (err) {
-            return res.status(500).json({ message: "Server error" });
-        }
-        res.clearCookie("sid");
-        res.send({ message: "Logged out successfully" });
-    })
-}
-
-// const forgotPassword = async (req, res) => {
-//     try {
-//         const { email } = req.body //requestin bodysinden e-maili gotur
-
-//         if (!email) {
-//             return res.status(400).json({ message: "Email is required" });
-//         }
-
-//         const user = await User.findOne({ email })
-//         if (!user) {
-//             return res.status(404).json({ message: "User not found" });
-//         }
-//         const token = crypto.randomBytes(32).toString('hex');
-//         user.forgotPasswordToken = token;
-//         user.forgotPasswordTokenExpires = Date.now() + 3600000;
-//         await user.save();
-
-//         const emailContent = generatePasswordResetEmail(token);
-//          await transporter.sendMail({
-//             from: process.env.MAIL_USER,
-//             to: user.email,
-//             subject: 'Password Reset',
-//             html: emailContent.html
-//         });
-//         res.send({ message: "Reset password email sent successfully" });
-//     } catch (err) {
-//         console.error(err);
-//         return res.status(500).json({ message: "Server error" });
-//     }
-// }
+    res.send({ message: "User logged out successfully" });
+  });
+};
 
 const forgotPassword = async (req, res) => {
-    try {
-        const { email } = req.body; 
+  try {
+    const { email } = req.body;
 
-        if (!email) {
-            return res.status(400).json({ message: "Email is required" });
-        }
+    const user = await User.findOne({ email });
 
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        const token = crypto.randomBytes(32).toString('hex');
-        user.forgotPasswordToken = token;
-        user.forgotPasswordTokenExpires = Date.now() + 3600000; 
-
-        await user.save({ validateBeforeSave: false });  
-
-        const emailContent = generatePasswordResetEmail(token, user);
-
-        await transporter.sendMail({
-            from: process.env.MAIL_USER,
-            to: user.email,
-            subject: 'Password Reset',
-            html: emailContent.html,
-        });
-
-        res.send({ message: "Password reset email sent successfully" });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Server error while sending password reset email" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found!" });
     }
-};
 
+    const token = crypto.randomBytes(32).toString("hex");
+
+    user.resetPasswordToken = token;
+    user.resetPasswordTokenExpires = Date.now() + 1000 * 60 * 15;
+
+    await user.save();
+
+    await transporter.sendMail({
+      from: '"Passport Auth 👻" <dadasovsuleyman126@gmail.com>', // sender address
+      to: email, // list of receivers
+      subject: "Reset Your Password", // Subject line
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              background-color: #f4f4f4;
+              margin: 0;
+              padding: 0;
+            }
+            .email-container {
+              max-width: 600px;
+              margin: 20px auto;
+              background-color: #ffffff;
+              border-radius: 8px;
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+              overflow: hidden;
+            }
+            .email-header {
+              background-color: #007bff;
+              color: white;
+              padding: 20px;
+              text-align: center;
+              font-size: 24px;
+            }
+            .email-body {
+              padding: 20px;
+              color: #333333;
+            }
+            .email-body p {
+              line-height: 1.6;
+            }
+            .reset-button {
+              display: inline-block;
+              margin: 20px auto;
+              padding: 10px 20px;
+              background-color: #007bff;
+              color: white;
+              text-decoration: none;
+              border-radius: 5px;
+              font-size: 16px;
+              text-align: center;
+            }
+            .email-footer {
+              padding: 10px;
+              text-align: center;
+              font-size: 12px;
+              color: #777777;
+              background-color: #f4f4f4;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="email-container">
+            <div class="email-header">
+              Reset Your Password
+            </div>
+            <div class="email-body">
+              <p>Hello, ${user.name}.</p>
+              <p>We received a request to reset your password. Please click the button below to reset your password:</p>
+              <a href="${process.env.CLIENT_URL}/reset-password/${token}" class="reset-button">
+                Reset Password
+              </a>
+              <p>If you did not request a password reset, please ignore this email or contact support if you have concerns.</p>
+              <p>Thank you,<br>Passport Auth Team</p>
+            </div>
+            <div class="email-footer">
+              &copy; 2024 Passport Auth. All rights reserved.
+            </div>
+          </div>
+        </body>
+        </html>
+      `, // HTML body
+    });
+
+    res.json({ message: "Password reset email sent successfully" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal server error!" });
+  }
+};
 
 const resetPassword = async (req, res) => {
-    try {
-        const { token, password } = req.body;
-        if (!password) {
-            return res.status(400).json({ message: "Password is required" });
-        }
-        const user = await User.findOne({
-             forgotPasswordToken: token,
-              forgotPasswordTokenExpires: { $gt: Date.now() } })
+  try {
+    const { token, password } = req.body;
 
-        if (!user) {
-            return res.status(404).json({ message: "Invalid or expired token" });
-        }
-        user.password = hashPassword(password);
-        user.forgotPasswordToken = null;
-        user.forgotPasswordTokenExpires = null;
-        await user.save();
-        res.send({ message: "Password reset successfully" });        
-    } catch (err) {
-        console.error(err);
-        return res.status(500).json({ message: "Server error" });
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordTokenExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired token!" });
     }
-}
 
+    user.password = hashPassword(password);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordTokenExpires = undefined;
 
+    await user.save();
 
-const authController = {
-    register,
-    login,
-    currentUser,
-    logout,
-    forgotPassword,
-    resetPassword,
+    res.json({ message: "Password reset successfully!" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal server error!" });
+  }
 };
 
+const authController = {
+  login,
+  logout,
+  register,
+  currentUser,
+  resetPassword,
+  forgotPassword,
+};
 
-export default {
-    authController
-}
+export default authController;

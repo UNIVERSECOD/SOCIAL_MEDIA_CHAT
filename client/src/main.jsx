@@ -1,24 +1,29 @@
 import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider } from "react-router-dom";
-import 'react-toastify/dist/ReactToastify.css';
-import { ThemeProvider } from "./components/providers/theme-provider";
-import { router } from "./router";
-import "./styles/global.css";
-import "./styles/index.css";
 import { ToastContainer } from "react-toastify";
-import { store } from "./store";
 import { Provider } from "react-redux";
 
-const queryClient = new QueryClient();
+import { router } from "./router";
+import { store } from "./store";
+
+import "react-toastify/dist/ReactToastify.css";
+import "./styles/global.css";
+import "./styles/index.css";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 createRoot(document.getElementById("root")).render(
   <Provider store={store}>
-  <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
+      <ToastContainer />
     </QueryClientProvider>
-    <ToastContainer/>
-  </ThemeProvider>
   </Provider>
 );

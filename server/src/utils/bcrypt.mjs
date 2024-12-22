@@ -1,15 +1,11 @@
-import bcrypt from "bcrypt"
-import { configDotenv } from 'dotenv';
-
-configDotenv()
+import bcrypt from "bcrypt";
 
 export function hashPassword(password) {
-    const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUND)
-    const salt = bcrypt.genSaltSync(saltRounds);;
-    const hashedPassword = bcrypt.hashSync(password, salt);
-    return hashedPassword
-} // hash eden funksiya
+  const salt = bcrypt.genSaltSync(+process.env.BCRYPT_SALT_ROUND);
+  const hashedPassword = bcrypt.hashSync(password, salt);
+  return hashedPassword;
+}
 
-export function comparePasswords(password, hashedPassword) {
-    return bcrypt.compareSync(password, hashedPassword)
-} //  kohne shifreyle muqayise
+export function comparePassword(password, hashedPassword) {
+  return bcrypt.compareSync(password, hashedPassword);
+}

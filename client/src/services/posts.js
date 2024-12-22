@@ -1,45 +1,47 @@
-import { BASE_URL } from "@/constants";
-import axios from "axios";
+import axiosInstance from "./instance";
 
 export async function getPosts({ pageParam, search = "", sort = "" }) {
   try {
-    const response = await axios.get(
-      `${BASE_URL}/post?page=${pageParam}&search=${search}&sort=${sort}&limit=3`,
-      {
-        withCredentials: true,
-      }
+    const response = await axiosInstance.get(
+      `/post?page=${pageParam}&search=${search}&sort=${sort}&limit=3`
     );
-    
     return response.data;
-   
   } catch (error) {
     console.error(error);
     return {};
   }
 }
 
-
-
-export async function createPost({ data }) {
+export async function getFeed({
+  pageParam,
+  search = "",
+  sort = "",
+  limit = 10,
+}) {
   try {
-    const response = await axios.post(`${BASE_URL}/post`, data, {
-      withCredentials: true,
-    });
-    console.log('Response data:', response.data);
-    return response.data;
+    const resp = await axiosInstance.get(
+      `/post/feed?page=${pageParam}&search=${search}&sort=${sort}&limit=10`
+    );
+    return resp.data;
   } catch (error) {
-    console.error('Client-side error:', error.response?.data || error.message);
+    console.error(error);
     return {};
   }
 }
 
+export async function createPost({ data }) {
+  try {
+    const response = await axiosInstance.post(`/post`, data);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    return {};
+  }
+}
 
 export async function editPost({ id, data }) {
   try {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    const response = await axios.put(`${BASE_URL}/post/${id}`, data, {
-      withCredentials: true,
-    });
+    const response = await axiosInstance.put(`/post/${id}`, data);
     return response.data;
   } catch (error) {
     console.error(error);
@@ -49,10 +51,7 @@ export async function editPost({ id, data }) {
 
 export async function deletePost({ id }) {
   try {
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-    const response = await axios.delete(`${BASE_URL}/post/${id}`,  {
-      withCredentials: true,
-    });
+    const response = await axiosInstance.delete(`/post/${id}`);
     return response.data;
   } catch (error) {
     console.error(error);
@@ -60,21 +59,15 @@ export async function deletePost({ id }) {
   }
 }
 
-export async function likePost({ id }) {
+export async function toggleLikePost({ id }) {
   try {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    const response = await axios.post(`${BASE_URL}/post/${id}/like`);
-    return response.data;
-  } catch (error) {
-    console.error(error);
-    return {};
-  }
-}
-
-export async function dislikePost({ id }) {
-  try {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    const response = await axios.post(`${BASE_URL}/posts/${id}/dislike`);
+    const response = await axiosInstance.put(
+      `/post/${id}/like`,
+      {},
+      {
+        withCredentials: true,
+      }
+    );
     return response.data;
   } catch (error) {
     console.error(error);
@@ -84,7 +77,7 @@ export async function dislikePost({ id }) {
 
 export async function getPostComments({ postId }) {
   try {
-    const response = await axios.get(`${BASE_URL}/comments/${postId}`);
+    const response = await axiosInstance.get(`/comment/${postId}`);
     return response.data;
   } catch (error) {
     console.error(error);
@@ -94,7 +87,7 @@ export async function getPostComments({ postId }) {
 
 export async function createPostComment({ postId, content }) {
   try {
-    const response = await axios.post(`${BASE_URL}/comments/${postId}`, {
+    const response = await axiosInstance.post(`/comment/${postId}`, {
       content,
     });
     return response.data;
@@ -104,12 +97,9 @@ export async function createPostComment({ postId, content }) {
   }
 }
 
-export async function deletePostComment({ postId, commentId }) {
+export async function deletePostComment({ commentId }) {
   try {
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-    const response = await axios.delete(
-      `${BASE_URL}/comments/${postId}/${commentId}`
-    );
+    const response = await axiosInstance.delete(`/comment/${commentId}`);
     return response.data;
   } catch (error) {
     console.error(error);
@@ -117,13 +107,15 @@ export async function deletePostComment({ postId, commentId }) {
   }
 }
 
-export async function editPostComment({ postId, commentId, content }) {
+export async function editPostComment({ commentId, content }) {
   try {
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-    const response = await axios.put(
-      `${BASE_URL}/comments/${postId}/${commentId}`,
+    const response = await axiosInstance.put(
+      `/comment/${commentId}`,
       {
         content,
+      },
+      {
+        withCredentials: true,
       }
     );
     return response.data;

@@ -1,20 +1,22 @@
-import { Router } from 'express';
-import { authorize } from '../middlewares/auth.mjs';
+import { Router } from "express";
+import { authorize } from "../middlewares/auth.mjs";
+
 const router = Router();
-import controller from '../controllers/friendship.mjs';
 
-router.get('/test', authorize(), controller.getAllFriends);
+import inviteController from "../controllers/friendship.mjs";
+import validateSchema from "../middlewares/validate.mjs";
+import { followRequestSchema } from "../validation/friendship.mjs";
 
-router.patch('/add/:receiverId', authorize(), controller.sendFriendRequest);
-
-router.patch('/:requestId/accept', authorize(), controller.acceptFriendRequest)
-
-router.get('/requests/', authorize(), controller.getFriendRequests);
-
-router.patch('/:requestId/reject', authorize(), controller.rejectFriendRequest)
-
-router.delete('/remove/:userId', authorize(), controller.removeFromFriend);
-
-router.delete('/:userId/retract', authorize(), controller.retractRequest);
+router.get("/getAll", authorize(), inviteController.getAllRequests);
+router.post(
+  "/:recipientId/send",
+  authorize(),
+  validateSchema(followRequestSchema),
+  inviteController.sendRequest
+);
+router.patch("/:requestId/accept", authorize(), inviteController.acceptRequest);
+router.patch("/:requestId/reject", authorize(), inviteController.rejectRequest);
+router.delete("/:userId/unfollow", authorize(), inviteController.removeFriend);
+router.delete("/:userId/retract", authorize(), inviteController.retractRequest);
 
 export default router;

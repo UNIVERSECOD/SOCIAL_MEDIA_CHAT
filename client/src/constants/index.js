@@ -5,8 +5,8 @@ export const MODAL_TYPE = {
   EDIT: "EDIT",
 };
 
-export const USER_FRIENDS_STATUS = {
-  NOT_FRIEND: "NOT FRIEND",
-  FRIENDS_REQUESTED: "REQUEST SENT",
-  FRIENDS: "FRIENDS",
-}
+export const USER_FRIENDSHIP_STATUS = {
+  FRIEND: 0,
+  PENDING: 1,
+  STRANGER: -1,
+};

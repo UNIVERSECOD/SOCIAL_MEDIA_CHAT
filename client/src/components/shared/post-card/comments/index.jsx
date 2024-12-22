@@ -27,10 +27,10 @@ export const PostComments = ({ postId, isOpen }) => {
             <Comment.Skeleton />
           </>
         )}
-        {data?.map((comment) => (
-          <Comment postId={postId} key={comment.id} comment={comment} />
+        {data?.items.map((comment) => (
+          <Comment postId={postId} key={comment._id} comment={comment} />
         ))}
-        {data && data.length === 0 && (
+        {data?.items.length === 0 && (
           <p className="text-gray-500 text-xs">No comments yet</p>
         )}
       </div>

@@ -8,11 +8,11 @@ import RegisterPage from "@/pages/register";
 import ForgotPasswordPage from "@/pages/forgot-password";
 import ResetPasswordPage from "@/pages/reset-password";
 import AuthLayout from "@/layouts/auth";
-import MyFriendsPage from "@/pages/friendship";
-import GettingFriendRequestPage from "@/pages/my-requests";
-import SearchAllUsersPage  from "@/pages/all-users"
-import ChatPage from "@/pages/chat";
+import SearchPage from "@/pages/search";
+import InvitesPage from "@/pages/invites";
 import ProfilePage from "@/pages/profile";
+import ChatPage from "@/pages/chat";
+
 const SavedPostsPage = lazy(() => import("@/pages/saved-posts"));
 
 export const router = createBrowserRouter([
@@ -25,24 +25,28 @@ export const router = createBrowserRouter([
         element: <HomePage />,
       },
       {
+        path: PATHS.SEARCH,
+        element: (
+          <Suspense fallback={<div>loading....</div>}>
+            <SearchPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: PATHS.INVITES,
+        element: (
+          <Suspense fallback={<div>loading....</div>}>
+            <InvitesPage />
+          </Suspense>
+        ),
+      },
+      {
         path: PATHS.SAVED,
         element: (
           <Suspense fallback={<div>loading....</div>}>
             <SavedPostsPage />
           </Suspense>
         ),
-      },
-      {
-        path: PATHS.FRIENDSHIP,
-        element: <MyFriendsPage />,
-      },
-      {
-        path: PATHS.FRIEND_REQUEST,
-        element: <GettingFriendRequestPage />,
-      },
-      {
-        path: PATHS.FIND_FRIEND,
-        element: <SearchAllUsersPage />,
       },
       {
         path: PATHS.PROFILE,
@@ -60,12 +64,19 @@ export const router = createBrowserRouter([
           </Suspense>
         ),
       },
-      
+      {
+        path: PATHS.CONVERSATION,
+        element: (
+          <Suspense fallback={<div>loading....</div>}>
+            <ChatPage />
+          </Suspense>
+        ),
+      },
     ],
   },
   {
     path: "",
-    element: <AuthLayout/> ,
+    element: <AuthLayout />,
     children: [
       {
         path: PATHS.LOGIN,
@@ -82,7 +93,7 @@ export const router = createBrowserRouter([
       {
         path: PATHS.RESET_PASSWORD,
         element: <ResetPasswordPage />,
-      }
-    ]
+      },
+    ],
   },
 ]);

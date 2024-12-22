@@ -1,50 +1,51 @@
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 
 const userSchema = new mongoose.Schema({
-    username: {
-        type: String,
-        required: true,
-        unique: true,
-      },
-    name: {
-        type: String,
-        required: true
+  name: {
+    type: String,
+    required: true,
+  },
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  avatar: {
+    type: String,
+    default: null,
+  },
+  friends: [
+    {
+      type: Types.ObjectId,
+      ref: "User",
     },
-    email: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    avatar : {
-        type: String,
-        default: null
-    },
-    password: {
-        type: String,
-        required: true
-    },
-    friends: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User', 
-        }
-    ],
-    forgotPasswordToken: {
-        type: String,
-        default: null,
-    },
-    forgotPasswordTokenExpires: {
-        type: Date,
-        default: null,
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    },
-    updatedAt: {
-        type: Date        
-    }
-})
+  ],
+  password: {
+    type: String,
+    required: true,
+  },
+  resetPasswordToken: {
+    type: String,
+    default: null,
+  },
+  resetPasswordTokenExpires: {
+    type: Date,
+    default: null,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
 
 const User = mongoose.model("User", userSchema);
 

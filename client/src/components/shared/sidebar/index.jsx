@@ -1,14 +1,19 @@
 import { NAV_ITEMS } from "@/constants/nav-items";
 import { cn } from "@/lib/utils";
+import { logoutAsync } from "@/store/auth/authSlice";
+import { LogOutIcon } from "lucide-react";
 import React from "react";
+import { useDispatch } from "react-redux";
 import { useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
-import { ModeToggle } from "../theme-toggle";
-import { LogOutIcon } from "lucide-react";
-import { logout } from "@/services/auth";
 
 export const Sidebar = () => {
   const location = useLocation();
+  const dispatch = useDispatch();
+
+  function handeLogout() {
+    dispatch(logoutAsync());
+  }
 
   return (
     <div className="md:w-[240px] md:h-screen sticky top-0 bg-black text-white md:px-6 py-4 px-3 md:py-0 md:pt-12">
@@ -30,11 +35,14 @@ export const Sidebar = () => {
             {item.title}
           </Link>
         ))}
-        <button onClick={() => logout()} className="flex items-center gap-2 font-bold">
-          <LogOutIcon/>
+
+        <button
+          onClick={handeLogout}
+          className={cn(`flex items-center gap-2 font-bold`)}
+        >
+          <LogOutIcon />
           Logout
         </button>
-        <ModeToggle />
       </ul>
     </div>
   );

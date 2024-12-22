@@ -9,72 +9,65 @@ import { PostsWrapper } from "./components/PostsWrapper";
 import { PostsFilter } from "./components/Filter";
 import { Heading } from "./components/Heading";
 
-import Spinner from "@/components/shared/spinner";
 import { POST_QUERY_KEY } from "@/constants/query-keys";
+import Spinner from "@/components/shared/spinner";
 
 const HomePage = () => {
   const [searchParams] = useSearchParams();
   const search = searchParams.get("search") ?? "";
   const sort = searchParams.get("sort") ?? "";
+  const { data, isLoading, isError, error, fetchNextPage, hasNextPage } =
+    useInfiniteQuery({
+      queryKey: [POST_QUERY_KEY, search, sort],
+      queryFn: ({ pageParam }) => getPosts({ pageParam, search, sort }),
+      initialPageParam: 1,
+      getNextPageParam: (lastPage) => {
+        const { count, page, limit } = lastPage;
+        const hasMore = count > page * limit;
+        return hasMore ? page + 1 : undefined;
+      },
+      refetchOnWindowFocus: false,
+    });
 
-  const {
-    data,
-    isLoading,
-    isError,
-    error,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useInfiniteQuery({
-    queryKey: [POST_QUERY_KEY, search, sort],
-    queryFn: ({ pageParam }) => getPosts({ pageParam, search, sort }),
-    initialPageParam: 1,
-    getNextPageParam: (lastPage) => {
-      const { totalCount, page, limit } = lastPage;
-      const hasMore = totalCount > page * limit;
-      return hasMore ? page + 1 : undefined;
-    },
-    refetchOnWindowFocus: false,
-  });
-
-  const pages = data?.pages ?? [];
+  const { pages } = data ?? {};
 
   if (isError) {
     return <div>Error: {error.message}</div>;
   }
 
   return (
-    <div className="mx-auto max-w-screen-lg px-4 md:px-10 py-10 bg-black">
-      <Heading total={pages[0]?.totalCount ?? 0} />
+    <div className="mx-auto max-w-screen-lg px-4 md:px-10 py-10">
+      <Heading total={pages?.[0]?.count ?? 0} />
       <PostsFilter />
       <PostsWrapper>
         <InfiniteScroll
-          dataLength={pages.flatMap((page) => page.items).length}
+          dataLength={pages?.length ?? 0}
           next={fetchNextPage}
-          hasMore={hasNextPage || isFetchingNextPage}
+          hasMore={hasNextPage}
+          hasChildren={!!pages}
           loader={
             <div className="text-center">
               <Spinner size={24} />
             </div>
           }
           endMessage={
-            pages.length > 0 && (
+            pages && (
               <p className="text-muted-foreground font-semibold text-sm text-center">
                 Yay! You have seen it all
               </p>
             )
           }
-          className="flex flex-col gap-5"
+          className="flex flex-col gap-5 px-3"
         >
-          {pages.flatMap((page) =>
+          {pages?.map((page) =>
             page.items.map((post) => <PostCard key={post._id} post={post} />)
           )}
         </InfiniteScroll>
         {isLoading && (
-          <div className="flex flex-col gap-5">
+          <>
             <PostCard.Skeleton />
             <PostCard.Skeleton />
-          </div>
+          </>
         )}
       </PostsWrapper>
     </div>

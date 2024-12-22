@@ -7,10 +7,13 @@ import { PostLike } from "./Like";
 import { PostComments } from "./comments";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { useState } from "react";
+import { useSelector } from "react-redux";
+import { selectUser } from "@/store/auth/authSlice";
+import { Avatar } from "../avatar";
 
 export const PostCard = ({ post }) => {
-  const { _id, user, img, content, tags, title, likes, createdAt, comments } =
-    post;
+  const { user: currentUser } = useSelector(selectUser);
+  const { _id, user, imageUrl, content, tags, title, createdAt, likes } = post;
   const [collapsed, setCollapsed] = useState(true);
 
   const time = moment(createdAt).fromNow();
@@ -20,27 +23,21 @@ export const PostCard = ({ post }) => {
     setCollapsed((prev) => !prev);
   }
 
+  const isOwner = user._id === currentUser._id;
+
   return (
-    <div className="bg-white p-8 rounded-lg shadow-md max-w-md min-w-[400px]">
+    <div className="bg-white p-8 rounded-lg shadow-md shadow-purple-200 max-w-md min-w-[400px]">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
-          {user.avatar ? (
-            <img
-              src={user?.avatar}
-              alt="User Avatar"
-              className="w-9 h-9 rounded-full object-cover"
-            />
-          ) : (
-            <UserCircle2Icon className="w-9 h-9" />
-          )}
+          <Avatar user={user} />
           <div>
             <p className="text-gray-800 font-semibold">
-              {user?.username ?? "Anonimus"}
+              {user?.name ?? "Anonymous"}
             </p>
             <p className="text-gray-500 text-sm">Posted {time}</p>
           </div>
         </div>
-        <PostCardAction post={post} />
+        {isOwner && <PostCardAction post={post} />}
       </div>
 
       <div className="mb-4">
@@ -56,14 +53,14 @@ export const PostCard = ({ post }) => {
 
       <div className="mb-4">
         <img
-          src={img}
+          src={imageUrl}
           alt="Post Image"
           className="w-full h-48 object-contain rounded-md"
         />
       </div>
 
       <div className="flex items-center justify-between text-gray-500">
-        <PostLike liked={likes} postId={_id} />
+        <PostLike likes={likes} postId={_id} />
         <button
           onClick={toogleCollapse}
           className="flex justify-center items-center gap-2 px-2 hover:bg-gray-50 rounded-full p-1"
@@ -89,13 +86,16 @@ export const PostCard = ({ post }) => {
               ></path>
             </g>
           </svg>
-          {/* <span>{commentCount} Comment</span> */}
+          <span>
+            {/* {commentCount}  */}
+            Comment
+          </span>
         </button>
       </div>
 
       <Collapsible open={!collapsed} onOpenChange={setCollapsed}>
         <CollapsibleContent>
-          <PostComments isOpen={!collapsed} postId={_id} comments={[]} />
+          <PostComments isOpen={!collapsed} postId={_id} />
         </CollapsibleContent>
       </Collapsible>
     </div>

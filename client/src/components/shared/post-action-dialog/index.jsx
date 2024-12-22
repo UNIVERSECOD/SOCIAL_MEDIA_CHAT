@@ -37,7 +37,7 @@ const getFormSchema = (isEdit) =>
     }),
     content: z.string().min(10),
     tags: z.string(),
-    img: isEdit
+    image: isEdit
       ? z.any().nullable()
       : z.instanceof(File, {
           message: "Image is required",
@@ -56,7 +56,7 @@ export const PostActionDialog = () => {
       title: "",
       content: "",
       tags: "",
-      img: null,
+      image: null,
     },
   });
   const { mutate, isPending } = useMutation({
@@ -72,7 +72,7 @@ export const PostActionDialog = () => {
     formData.append("title", values.title);
     formData.append("content", values.content);
     formData.append("tags", values.tags);
-    if (values.img) formData.append("img", values.img);
+    if (values.image) formData.append("image", values.image);
     mutate(isEdit ? { id: data._id, data: formData } : { data: formData });
   }
 
@@ -81,7 +81,7 @@ export const PostActionDialog = () => {
       form.setValue("title", data.title);
       form.setValue("content", data.content);
       form.setValue("tags", data.tags.join(","));
-      setImagePreview(data.img);
+      setImagePreview(data.image);
     }
     if (!isOpen) {
       form.reset();
@@ -148,7 +148,7 @@ export const PostActionDialog = () => {
             ) : (
               <FormField
                 control={form.control}
-                name="img"
+                name="image"
                 render={() => (
                   <FormItem>
                     <FormLabel>Post Image</FormLabel>
@@ -158,8 +158,8 @@ export const PostActionDialog = () => {
                         onChange={(e) => {
                           const file = e.target.files[0];
                           if (file) {
-                            form.setValue("img", file);
-                            form.clearErrors("img");
+                            form.setValue("image", file);
+                            form.clearErrors("image");
                           }
                         }}
                       />

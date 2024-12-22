@@ -7,7 +7,6 @@ export const CurrentUserCard = () => {
   const { user } = useSelector(selectUser);
   const { name, username } = user;
 
-
   return (
     <div className="flex flex-col items-center bg-indigo-100 border border-gray-200 mt-4 w-full py-6 px-4 rounded-lg">
       <div className="h-12 w-12 rounded-full flex items-center justify-center uppercase text-3xl bg-gray-500 text-white">

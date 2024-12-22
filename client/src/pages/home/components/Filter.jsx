@@ -21,12 +21,12 @@ import { useForm } from "react-hook-form";
 import { useSearchParams } from "react-router-dom";
 
 const sortOptions = [
-  { value: "title-desc", label: "Title (A-Z)" },
-  { value: "title-asc", label: "Title (Z-A)" },
-  { value: "createdAt-desc", label: "Oldest" },
-  { value: "createdAt-asc", label: "Newest" },
-  { value: "content-desc", label: "Content (A-Z)" },
-  { value: "content-asc", label: "Content (Z-A)" },
+  { value: "title-asc", label: "Title (A-Z)" },
+  { value: "title-desc", label: "Title (Z-A)" },
+  { value: "createdAt-asc", label: "Oldest" },
+  { value: "createdAt-desc", label: "Newest" },
+  { value: "content-asc", label: "Content (A-Z)" },
+  { value: "content-desc", label: "Content (Z-A)" },
 ];
 
 export const PostsFilter = () => {

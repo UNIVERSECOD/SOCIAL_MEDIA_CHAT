@@ -1,47 +1,50 @@
 import { PATHS } from "@/constants/paths";
+import { cn } from "@/lib/utils";
 import { register } from "@/services/auth";
 import { useMutation } from "@tanstack/react-query";
 import { Formik } from "formik";
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import * as Yup from "yup";
 
 const RegisterSchema = Yup.object().shape({
   username: Yup.string()
-    .min(2, "Too Short!")
-    .max(20, "Too Long!")
-    .required("Username is required"),
+  .min(2, "Too Short!")
+  .max(20, "Too Long!")
+  .required("Required"),
   name: Yup.string()
     .min(2, "Too Short!")
-    .max(10, "Too Long!")
-    .required("Add minimum 2 max 10 characters"),
-  email: Yup.string()
-    .email("Invalid email")
-    .required("Please enter your email address"),
+    .max(50, "Too Long!")
+    .required("Required"),
+  email: Yup.string().email("Invalid email").required("Required"),
   password: Yup.string()
-    .required("Please enter your password")
+    .required("Required")
     .min(8, "Password is too short - should be 8 chars minimum.")
     .matches(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-      "Invalid password format"
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,10}$/,
+      "Invalid Password Format."
     ),
   confirmPassword: Yup.string()
-    .required("Passwords must match")
+    .required("Required")
     .oneOf([Yup.ref("password"), null], "Passwords must match"),
-  acceptTerms: Yup.boolean().oneOf([true], "You must agree to the terms"),
+  acceptTemrs: Yup.boolean().oneOf(
+    [true],
+    "Accept Terms & Conditions is required"
+  ),
 });
 
 const RegisterPage = () => {
   const navigate = useNavigate();
-  const { mutate } = useMutation({
+  const { mutateAsync } = useMutation({
     mutationFn: register,
     onSuccess: (response) => {
-      toast.success(response.data.message || "Account created successfully");
+      toast.success(response.data.message || "Account created successfully!");
       navigate(PATHS.LOGIN);
     },
     onError: (error) => {
-      const message = error.response?.data?.message || "Something went wrong";
+      const message = error.response?.data?.message || "Something went wrong!";
       toast.error(message);
     },
   });
@@ -54,23 +57,23 @@ const RegisterPage = () => {
       email: values.email,
       password: values.password,
     };
-    await mutate(data).unwrap();
+    await mutateAsync(data);
     setSubmitting(false);
   }
   return (
     <section className="bg-gray-50 dark:bg-gray-900">
-      <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
-        <Link
-          to={PATHS.LOGIN}
+      <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:min-h-screen lg:py-0">
+        <a
+          href="#"
           className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white"
         >
           <img
             className="w-8 h-8 mr-2"
-            src="https://Flowbite.s3.amazonaws.com/blocks/marketing-ui/logo.svg"
+            src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/logo.svg"
             alt="logo"
           />
-          LoomNet
-        </Link>
+          CoSocial
+        </a>
         <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
           <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
             <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
@@ -78,12 +81,12 @@ const RegisterPage = () => {
             </h1>
             <Formik
               initialValues={{
-                name: "",
                 username: "",
+                name: "",
                 email: "",
                 password: "",
                 confirmPassword: "",
-                acceptTerms: false,
+                acceptTemrs: false,
               }}
               validationSchema={RegisterSchema}
               onSubmit={handleSubmit}
@@ -100,10 +103,10 @@ const RegisterPage = () => {
               }) => (
                 <form
                   onSubmit={handleSubmit}
-                  className="space-y-2 md:space-y-2"
+                  className="space-y-1 md:space-y-2"
                   action="#"
                 >
-                  <div>
+                   <div>
                     <label
                       htmlFor="username"
                       className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -111,37 +114,35 @@ const RegisterPage = () => {
                       Your username
                     </label>
                     <input
-                      type="text"
                       name="username"
                       id="username"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                      placeholder="Username"
+                      placeholder="John Doe"
                       onChange={handleChange}
                       onBlur={handleBlur}
                       value={values.username}
                     />
-                    <p className="text-xs text-red-700 min-h-4">
+                    <p className="text-xs text-red-600 min-h-4">
                       {errors.username && touched.username && errors.username}
                     </p>
                   </div>
                   <div>
                     <label
-                      htmlFor="name"
+                      htmlFor="email"
                       className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                     >
-                      Your Full Name
+                      Your full name
                     </label>
                     <input
-                      type="text"
                       name="name"
                       id="name"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                      placeholder="Full Name"
+                      placeholder="John Doe"
                       onChange={handleChange}
                       onBlur={handleBlur}
                       value={values.name}
                     />
-                    <p className="text-xs text-red-700 min-h-4">
+                    <p className="text-xs text-red-600 min-h-4">
                       {errors.name && touched.name && errors.name}
                     </p>
                   </div>
@@ -153,7 +154,7 @@ const RegisterPage = () => {
                       Your email
                     </label>
                     <input
-                      type="email"
+                      type="text"
                       name="email"
                       id="email"
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
@@ -162,7 +163,7 @@ const RegisterPage = () => {
                       onBlur={handleBlur}
                       value={values.email}
                     />
-                    <p className="text-xs text-red-700 min-h-4">
+                    <p className="text-xs text-red-600 min-h-4">
                       {errors.email && touched.email && errors.email}
                     </p>
                   </div>
@@ -183,13 +184,13 @@ const RegisterPage = () => {
                       onBlur={handleBlur}
                       value={values.password}
                     />
-                    <p className="text-xs text-red-700 min-h-4">
+                    <p className="text-xs text-red-600 min-h-4">
                       {errors.password && touched.password && errors.password}
                     </p>
                   </div>
                   <div>
                     <label
-                      htmlFor="confirmPassword"
+                      htmlFor="confirm-password"
                       className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                     >
                       Confirm password
@@ -204,7 +205,7 @@ const RegisterPage = () => {
                       onBlur={handleBlur}
                       value={values.confirmPassword}
                     />
-                    <p className="text-xs text-red-700 min-h-4">
+                    <p className="text-xs text-red-600 min-h-4">
                       {errors.confirmPassword &&
                         touched.confirmPassword &&
                         errors.confirmPassword}
@@ -213,37 +214,36 @@ const RegisterPage = () => {
                   <div className="flex items-start">
                     <div className="flex items-center h-5">
                       <input
-                        id="acceptTerms"
-                        name="acceptTerms"
+                        id="acceptTemrs"
+                        name="acceptTemrs"
                         aria-describedby="terms"
                         type="checkbox"
                         className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-primary-600 dark:ring-offset-gray-800"
                         onChange={handleChange}
                         onBlur={handleBlur}
-                        checked={values.acceptTerms}
+                        checked={values.acceptTemrs}
                       />
                     </div>
-
                     <div className="ml-3 text-sm">
                       <label
                         htmlFor="terms"
-                        className="font-light text-gray-500 dark:text-gray-300"
+                        className={cn(
+                          "font-light",
+                          errors.acceptTemrs && touched.acceptTemrs
+                            ? "text-red-600"
+                            : "text-gray-500 dark:text-gray-300"
+                        )}
                       >
                         I accept the{" "}
-                        <Link
+                        <a
                           className="font-medium text-primary-600 hover:underline dark:text-primary-500"
                           href="#"
                         >
                           Terms and Conditions
-                        </Link>
+                        </a>
                       </label>
                     </div>
                   </div>
-                  <p className="text-xs text-red-700 min-h-4">
-                    {errors.acceptTerms &&
-                      touched.acceptTerms &&
-                      errors.acceptTerms}
-                  </p>
                   <button
                     type="submit"
                     disabled={isSubmitting}

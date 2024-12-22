@@ -1,14 +1,21 @@
 export const PATHS = {
-  HOME: "/",
+  FEED: "/feed",
+  DISCOVER: "/",
   SAVED: "/saved",
-  REGISTER: "/register",
+  INVITES: "/invites",
+  SEARCH: "/search",
+  PROFILE: "/profile",
   LOGIN: "/login",
+  REGISTER: "/register",
   FORGOT_PASSWORD: "/forgot-password",
-  RESET_PASSWORD: "/reset-password/:id",
-  FRIENDSHIP: "/friend",
-  FRIEND_REQUEST: "/friend/requests",
-  FIND_FRIEND: "/users",
+  RESET_PASSWORD: "/reset-password/:token",
   CHAT: "/chat",
   CONVERSATION: "/chat/:id",
-
 };
+
+export const unauthenticatedRoutes = [
+  PATHS.LOGIN,
+  PATHS.REGISTER,
+  PATHS.FORGOT_PASSWORD,
+  PATHS.RESET_PASSWORD,
+];

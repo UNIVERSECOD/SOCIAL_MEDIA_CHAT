@@ -1,5 +1,6 @@
-import { currentUser } from "@/services/auth";
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { getCurrentUser, logout } from "@/services/auth";
+import { createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   user: null,
@@ -24,7 +25,7 @@ export const authSlice = createSlice({
       state.user = action.payload.data.user;
       state.loading = false;
     });
-    builder.addCase(getCurrentUserAsync.rejected, (state) => {
+    builder.addCase(getCurrentUserAsync.rejected, (state, action) => {
       state.loading = false;
     });
     builder.addCase(logoutAsync.pending, (state) => {
@@ -40,20 +41,17 @@ export const authSlice = createSlice({
   },
 });
 
-// Action creators are generated for each case reducer function
 export const { clearAuth } = authSlice.actions;
 
 export const getCurrentUserAsync = createAsyncThunk(
-  "auth/currentUser",
+  "auth/getCurrentUser",
   async () => {
-    return await currentUser();
+    return await getCurrentUser();
   }
 );
 
 export const logoutAsync = createAsyncThunk("auth/logout", async () => {
-  return await axios.post(`${BASE_URL}/auth/logout`, null, {
-    withCredentials: true,
-  });
+  await logout();
 });
 
 export const selectUser = (state) => state.auth;

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authorize } from "../middlewares/auth.mjs";
-import conversationController from "../controllers/converation.mjs";
+import conversationController from "../controllers/conversation.mjs";
 
 const router = Router();
 

@@ -1,75 +1,57 @@
-
-// bu melimatlari req.bodyden goturruk useri ise cookieden 
-
-const createPostValidationSchema = {
-    title: {
-        in: ['body'],
-        isString: true,
-        notEmpty: {
-            errorMessage: 'Title is required',
-        },
-        isLength: {
-            options: { min: 5 },
-            errorMessage: 'Name must be at least 3 characters long',
-        },
+export const postCreateSchema = {
+  title: {
+    in: ["body"],
+    isString: true,
+    isLength: {
+      errorMessage: "Title should be at least 3 chars long",
+      options: { min: 3 },
     },
-    img: {
-        custom: {
-            options: (_, {req}) => {
-                if(!req.file){
-                    throw new Error("Image is required")
-                }
-                return true;
-            }
+  },
+  content: {
+    in: ["body"],
+    isString: true,
+    isLength: {
+      errorMessage: "Content should be at least 10 chars long",
+      options: { min: 10 },
+    },
+  },
+  tags: {
+    in: ["body"],
+    isString: true,
+    optional: true,
+  },
+  image: {
+    custom: {
+      errorMessage: "Image is required",
+      options: (value, { req }) => {
+        if (!req.file) {
+          return false;
         }
+        return true;
+      },
     },
-    content: {
-        in: ['body'],
-        notEmpty: {
-            errorMessage: 'Content is required',
-        },
-        isLength: {
-            options: { max: 50 },
-            errorMessage: 'You reached the maximum number of characters',
-        },
-    },
-    tags: {
-        in: ['body'],
-        isString: true,
-        optional: true
-    },
+  },
 };
-
-const editPostValidationSchema = {
-    title: {
-        in: ['body'],
-        isString: true,
-        notEmpty: {
-            errorMessage: 'Title is required',
-        },
-        isLength: {
-            options: { min: 5 },
-            errorMessage: 'Name must be at least 3 characters long',
-        },
+export const postEditSchema = {
+  title: {
+    in: ["body"],
+    isString: true,
+    isLength: {
+      errorMessage: "Title should be at least 3 chars long",
+      options: { min: 3 },
     },
-    content: {
-        in: ['body'],
-        notEmpty: {
-            errorMessage: 'Content is required',
-        },
-        isLength: {
-            options: { max: 50 },
-            errorMessage: 'You reached the maximum number of characters',
-        },
+  },
+  content: {
+    in: ["body"],
+    isString: true,
+    isLength: {
+      errorMessage: "Content should be at least 10 chars long",
+      options: { min: 10 },
     },
-    tags: {
-        in: ['body'],
-        isString: true,
-        optional: true
-    },
+  },
+  tags: {
+    in: ["body"],
+    isString: true,
+    optional: true,
+  },
 };
-
-export default {
-    createPostValidationSchema,
-    editPostValidationSchema,
-}

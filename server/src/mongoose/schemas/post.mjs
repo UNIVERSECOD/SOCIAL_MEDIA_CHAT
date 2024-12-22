@@ -1,10 +1,9 @@
 import mongoose, { Types } from "mongoose";
 
-
 const postSchema = new mongoose.Schema({
   user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    type: Types.ObjectId,
+    ref: "User",
     required: true,
   },
   title: {
@@ -15,32 +14,25 @@ const postSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  tags: {
-    type: [String],
-    required: false,
-  },
-  likes: {
-    type: [Types.ObjectId],
-    ref: "User"
-  },
-  comments: {
-    type: [Types.ObjectId],
-    ref: "Comment"
-  },
-  img: {
+  tags: [String],
+  imageUrl: {
     type: String,
     required: true,
   },
+  likes: {
+    type: [Types.ObjectId],
+    ref: "User",
+  },
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   updatedAt: {
-    type: Date
+    type: Date,
+    default: Date.now,
   },
 });
 
-const Post = mongoose.model('Post', postSchema);
+const Post = mongoose.model("Post", postSchema);
 
-export default Post
-
+export default Post;

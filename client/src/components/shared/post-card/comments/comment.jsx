@@ -13,12 +13,16 @@ import { Input } from "@/components/ui/input";
 import { BanIcon } from "lucide-react";
 import { useRef } from "react";
 import { cn } from "@/lib/utils";
+import { Avatar } from "../../avatar";
+import { useSelector } from "react-redux";
+import { selectUser } from "@/store/auth/authSlice";
 
 export const Comment = ({ comment, postId }) => {
+  const { user: currentUser } = useSelector(selectUser);
   const [isEditing, setIsEditing] = useState(false);
   const inputRef = useRef();
   const queryClient = useQueryClient();
-  const { content, createdAt, updatedAt, id } = comment;
+  const { content, createdAt, updatedAt, _id, user } = comment;
   const isEdited = createdAt !== updatedAt;
   const { mutate, isPending: isDeletePending } = useMutation({
     mutationFn: deletePostComment,
@@ -43,7 +47,7 @@ export const Comment = ({ comment, postId }) => {
   function handleDelete() {
     mutate({
       postId,
-      commentId: id,
+      commentId: _id,
     });
   }
 
@@ -59,24 +63,28 @@ export const Comment = ({ comment, postId }) => {
   function handleEdit(e) {
     e.preventDefault();
     mutateEdit({
-      commentId: id,
+      commentId: _id,
       postId,
       content: inputRef.current.value,
     });
   }
 
+  const isOwner = user._id === currentUser._id;
+
   return (
     <div className="flex items-center justify-between text-xs">
       <div className="flex items-center space-x-2">
-        <UserCircle2Icon className="w-6 h-6" />
+        <Avatar user={user} />
         <div>
-          <div className="flex items-center gap-3">
-            <p className="text-gray-800 font-semibold">Anonymous</p>
-            <p className="text-[10px] leading-[10px] text-muted-foreground ">
+          <div className="flex gap-3">
+            <p className="text-gray-800 font-semibold max-w-16">
+              {user?.name ?? "Anonymous"}
+            </p>
+            <p className="text-[10px] leading-[10px] text-muted-foreground translate-y-1">
               {moment(createdAt).format("DD MMM YY")}
             </p>
             {isEdited && (
-              <span className="-ml-2 text-[10px] leading-[10px] text-muted-foreground/75">
+              <span className="-ml-2 text-[10px] leading-[10px] text-muted-foreground/75 translate-y-1">
                 (edited at {moment(updatedAt).format("DD MMM YY")})
               </span>
             )}
@@ -102,30 +110,32 @@ export const Comment = ({ comment, postId }) => {
           </p>
         </div>
       </div>
-      <div className="flex items-center">
-        <Button
-          disabled={isPending}
-          onClick={toggleEdit}
-          size="xs"
-          variant="ghost"
-        >
-          {isEditPending ? (
-            <Spinner />
-          ) : isEditing ? (
-            <BanIcon className="h-3 w-3" />
-          ) : (
-            <Edit2Icon className="h-3 w-3" />
-          )}
-        </Button>
-        <Button
-          disabled={isPending}
-          onClick={handleDelete}
-          size="xs"
-          variant="ghost"
-        >
-          {isDeletePending ? <Spinner /> : <Trash2Icon className="h-3 w-3" />}
-        </Button>
-      </div>
+      {isOwner && (
+        <div className="flex items-center">
+          <Button
+            disabled={isPending}
+            onClick={toggleEdit}
+            size="xs"
+            variant="ghost"
+          >
+            {isEditPending ? (
+              <Spinner />
+            ) : isEditing ? (
+              <BanIcon className="h-3 w-3" />
+            ) : (
+              <Edit2Icon className="h-3 w-3" />
+            )}
+          </Button>
+          <Button
+            disabled={isPending}
+            onClick={handleDelete}
+            size="xs"
+            variant="ghost"
+          >
+            {isDeletePending ? <Spinner /> : <Trash2Icon className="h-3 w-3" />}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
